@@ -29,4 +29,4 @@ TRIPLET_WEIGHT = 2.0
 ENABLE_TRIPLET_WITH_COSINE = False  # Buggy when backward...
 COLOR_WEIGHT = 0.1
 DISTANCE_METRIC = ('euclidean', 'euclidean')
-FREEZE_PARAM = False
+FREEZE_PARAM = True
