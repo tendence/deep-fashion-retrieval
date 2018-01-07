@@ -15,7 +15,9 @@ class f_model(nn.Module):
     '''
     def __init__(self, freeze_param=False, inter_dim=INTER_DIM, num_classes=CATEGORIES, model_path=None):
         super(f_model, self).__init__()
+        print("set backbone")
         self.backbone = torchvision.models.resnet50(pretrained=True)
+        #self.backbone = torchvision.models.resnet50(pretrained=False)
         state_dict = self.backbone.state_dict()
         num_features = self.backbone.fc.in_features
         self.backbone = nn.Sequential(*list(self.backbone.children())[:-2])
@@ -29,6 +31,8 @@ class f_model(nn.Module):
         self.avg_pooling = nn.AvgPool2d(7, stride=1)
         self.fc = nn.Linear(num_features, inter_dim)
         self.fc2 = nn.Linear(inter_dim, num_classes)
+        print("load model")
+        print("model_path               "+model_path)
         state = load_model(model_path)
         if state:
             new_state = self.state_dict()
