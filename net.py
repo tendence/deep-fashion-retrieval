@@ -3,8 +3,8 @@
 import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
-from config import *
-from utils import *
+from myconfig import cfg
+from utils import load_model
 from torch.autograd import Variable
 
 
@@ -13,7 +13,7 @@ class f_model(nn.Module):
     input: N * 3 * 224 * 224
     output: N * num_classes, N * inter_dim, N * C' * 7 * 7
     '''
-    def __init__(self, freeze_param=False, inter_dim=INTER_DIM, num_classes=CATEGORIES, model_path=None):
+    def __init__(self, freeze_param=False, inter_dim=cfg.INTER_DIM, num_classes=cfg.CATEGORIES, model_path=None):
         super(f_model, self).__init__()
         print("set backbone")
         self.backbone = torchvision.models.resnet50(pretrained=True)

@@ -5,14 +5,15 @@ import sys
 import numpy as np
 from scipy.spatial.distance import cdist
 from torch.autograd import Variable
-from utils import *
+from utils import FeatureExtractor,data_transform_test
+#from utils import *
 from data import Fashion_attr_prediction
 from net import f_model, c_model, p_model
 from sklearn.externals import joblib
 from myconfig import cfg
+import torch
 
-
-@timer_with_task("Loading model")
+#@timer_with_task("Loading model")
 def load_test_model():
     if not os.path.isfile(cfg.DUMPED_MODEL) and not os.path.isfile(os.path.join(cfg.DATASET_BASE, "models", cfg.DUMPED_MODEL)):
         print("No trained model file!")
@@ -24,7 +25,7 @@ def load_test_model():
     return extractor
 
 
-@timer_with_task("Loading feature database")
+#@timer_with_task("Loading feature database")
 def load_feat_db():
     feat_all = os.path.join(cfg.DATASET_BASE, 'all_feat.npy')
     feat_list = os.path.join(cfg.DATASET_BASE, 'all_feat.list')
@@ -39,7 +40,7 @@ def load_feat_db():
     return deep_feats, color_feats, labels
 
 
-@timer_with_task("Loading feature K-means model")
+#@timer_with_task("Loading feature K-means model")
 def load_kmeans_model():
     clf_model_path = os.path.join(cfg.DATASET_BASE, r'models', r'kmeans.m')
     clf = joblib.load(clf_model_path)
@@ -73,13 +74,13 @@ def get_deep_color_top_n(features, deep_feats, color_feats, labels, retrieval_to
     return results
 
 
-@timer_with_task("Doing naive query")
+#@timer_with_task("Doing naive query")
 def naive_query(features, deep_feats, color_feats, labels, retrieval_top_n=5):
     results = get_deep_color_top_n(features, deep_feats, color_feats, labels, retrieval_top_n)
     return results
 
 
-@timer_with_task("Doing query with k-Means")
+#@timer_with_task("Doing query with k-Means")
 def kmeans_query(clf, features, deep_feats, color_feats, labels, retrieval_top_n=5):
     label = clf.predict(features[0].reshape(1, features[0].shape[0]))
     ind = np.where(clf.labels_ == label)
@@ -90,7 +91,7 @@ def kmeans_query(clf, features, deep_feats, color_feats, labels, retrieval_top_n
     return results
 
 
-@timer_with_task("Extracting image feature")
+#@timer_with_task("Extracting image feature")
 def dump_single_feature(img_path, extractor):
     paths = [img_path, os.path.join(cfg.DATASET_BASE, img_path), os.path.join(cfg.DATASET_BASE, 'in_shop', img_path)]
     for i in paths:
@@ -101,7 +102,7 @@ def dump_single_feature(img_path, extractor):
             batch_size=1, num_workers=cfg.NUM_WORKERS, pin_memory=True
         )
         data = list(single_loader)[0]
-        data = Variable(data).cuda(GPU_ID)
+        data = Variable(data).cuda(cfg.GPU_ID)
         deep_feat, color_feat = extractor(data)
         deep_feat = deep_feat[0].squeeze()
         color_feat = color_feat[0]
@@ -125,12 +126,13 @@ def visualize(original, result, cols=1):
         a = fig.add_subplot(cols, np.ceil(n_images / float(cols)), n + 1)
         plt.imshow(image)
         a.set_title(title)
-    fig.set_size_inches(np.array(fig.get_size_inches()) * n_images * 0.25)
+    fig.set_size_inches(np.array(fig.get_size_inches()) * n_images * 0.95)
     plt.show()
 
 
 if __name__ == "__main__":
-    example = "img/Sheer_Pleated-Front_Blouse/img_00000005.jpg"
+    #example = "img/Sheer_Pleated-Front_Blouse/img_00000005.jpg"
+    example = "test6.jpg"
     if len(sys.argv) > 1 and sys.argv[1].endswith("jpg"):
         example = sys.argv[1]
     else:
@@ -144,12 +146,12 @@ if __name__ == "__main__":
         print("Input feature is None")
         exit()
 
-    clf = load_kmeans_model()
+    #clf = load_kmeans_model()
 
     result = naive_query(f, deep_feats, color_feats, labels, 5)
-    result_kmeans = kmeans_query(clf, f, deep_feats, color_feats, labels, 5)
+    #result_kmeans = kmeans_query(clf, f, deep_feats, color_feats, labels, 5)
 
     print("Naive query result:", result)
-    print("K-Means query result:", result_kmeans)
+    #print("K-Means query result:", result_kmeans)
     visualize(example, result)
-    visualize(example, result_kmeans)
+    #visualize(example, result_kmeans)

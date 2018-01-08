@@ -44,4 +44,6 @@ _C.TRIPLET_WEIGHT = 2.0
 _C.ENABLE_TRIPLET_WITH_COSINE = False  # Buggy when backward...
 _C.COLOR_WEIGHT = 0.1
 _C.DISTANCE_METRIC = ('euclidean', 'euclidean')
+#_C.DISTANCE_METRIC = ('cosine', 'cosine')
 _C.FREEZE_PARAM = True
+

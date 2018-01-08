@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from config import *
+from myconfig import cfg
 import os
 import time
 import torch
@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 
 def dump_model(model, epoch, batch_idx="final"):
-    dump_folder = os.path.join(DATASET_BASE, 'models')
+    dump_folder = os.path.join(cfg.DATASET_BASE, 'models')
     if not os.path.isdir(dump_folder):
         os.mkdir(dump_folder)
     save_path = os.path.join(dump_folder, "model_{}_{}.pth.tar".format(epoch, batch_idx))
@@ -22,7 +22,7 @@ def dump_model(model, epoch, batch_idx="final"):
 def load_model(path=None):
     if not path:
         return None
-    full = os.path.join(DATASET_BASE, 'models', path)
+    full = os.path.join(cfg.DATASET_BASE, 'models', path)
     for i in [path, full]:
         if os.path.isfile(i):
             return torch.load(i)
@@ -30,7 +30,7 @@ def load_model(path=None):
 
 
 def dump_feature(feat, img_path):
-    feat_folder = os.path.join(DATASET_BASE, 'features')
+    feat_folder = os.path.join(cfg.DATASET_BASE, 'features')
     if not os.path.isdir(feat_folder):
         os.mkdir(feat_folder)
     np_path = img_path.replace("/", "+")
@@ -39,7 +39,7 @@ def dump_feature(feat, img_path):
 
 
 def load_feature(img_path):
-    feat_folder = os.path.join(DATASET_BASE, 'features')
+    feat_folder = os.path.join(cfg.DATASET_BASE, 'features')
     np_path = img_path.replace("/", "+")
     np_path = os.path.join(feat_folder, np_path + '.npy')
     if os.path.isfile(np_path):
@@ -50,8 +50,8 @@ def load_feature(img_path):
 
 
 data_transform_test = transforms.Compose([
-    transforms.Scale(CROP_SIZE),
-    transforms.CenterCrop(CROP_SIZE),
+    transforms.Scale(cfg.CROP_SIZE),
+    transforms.CenterCrop(cfg.CROP_SIZE),
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -78,7 +78,7 @@ class FeatureExtractor(nn.Module):
         result = []
         for i in range(cls.size(0)):
             weight_n = weight[i].reshape(-1)
-            idx = np.argpartition(weight_n, -COLOR_TOP_N)[-COLOR_TOP_N:][::-1]
+            idx = np.argpartition(weight_n, -cfg.COLOR_TOP_N)[-cfg.COLOR_TOP_N:][::-1]
             color_n = color[i].reshape(color.shape[1], -1)
             color_selected = color_n[:, idx].reshape(-1)
             result.append(color_selected)
@@ -102,14 +102,14 @@ class TripletMarginLossCosine(nn.Module):
         return loss
 
 
-def timer_with_task(job=""):
-    def timer(fn):
-        def wrapped(*args, **kw):
-            print("{}".format(job + "..."))
-            tic = time.time()
-            ret = fn(*args, **kw)
-            toc = time.time()
-            print("{} Done. Time: {:.3f} sec".format(job, (toc - tic)))
-            return ret
-        return wrapped
-    return timer
+#def timer_with_task(job=""):
+#    def timer(fn):
+#        def wrapped(*args, **kw):
+#            print("{}".format(job + "..."))
+#            tic = time.time()
+#            ret = fn(*args, **kw)
+#            toc = time.time()
+#            print("{} Done. Time: {:.3f} sec".format(job, (toc - tic)))
+#            return ret
+#        return wrapped
+#    return timer
