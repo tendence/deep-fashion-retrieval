@@ -5,30 +5,30 @@ import sys
 import numpy as np
 from scipy.spatial.distance import cdist
 from torch.autograd import Variable
-from config import *
 from utils import *
 from data import Fashion_attr_prediction
 from net import f_model, c_model, p_model
 from sklearn.externals import joblib
+from myconfig import cfg
 
 
 @timer_with_task("Loading model")
 def load_test_model():
-    if not os.path.isfile(DUMPED_MODEL) and not os.path.isfile(os.path.join(DATASET_BASE, "models", DUMPED_MODEL)):
+    if not os.path.isfile(cfg.DUMPED_MODEL) and not os.path.isfile(os.path.join(cfg.DATASET_BASE, "models", cfg.DUMPED_MODEL)):
         print("No trained model file!")
         return
-    main_model = f_model(model_path=DUMPED_MODEL).cuda(GPU_ID)
-    color_model = c_model().cuda(GPU_ID)
-    pooling_model = p_model().cuda(GPU_ID)
+    main_model = f_model(model_path=cfg.DUMPED_MODEL).cuda(cfg.GPU_ID)
+    color_model = c_model().cuda(cfg.GPU_ID)
+    pooling_model = p_model().cuda(cfg.GPU_ID)
     extractor = FeatureExtractor(main_model, color_model, pooling_model)
     return extractor
 
 
 @timer_with_task("Loading feature database")
 def load_feat_db():
-    feat_all = os.path.join(DATASET_BASE, 'all_feat.npy')
-    feat_list = os.path.join(DATASET_BASE, 'all_feat.list')
-    color_feat = os.path.join(DATASET_BASE, 'all_color_feat.npy')
+    feat_all = os.path.join(cfg.DATASET_BASE, 'all_feat.npy')
+    feat_list = os.path.join(cfg.DATASET_BASE, 'all_feat.list')
+    color_feat = os.path.join(cfg.DATASET_BASE, 'all_color_feat.npy')
     if not os.path.isfile(feat_list) or not os.path.isfile(feat_all) or not os.path.isfile(color_feat):
         print("No feature db file! Please run feature_extractor.py first.")
         return
@@ -41,7 +41,7 @@ def load_feat_db():
 
 @timer_with_task("Loading feature K-means model")
 def load_kmeans_model():
-    clf_model_path = os.path.join(DATASET_BASE, r'models', r'kmeans.m')
+    clf_model_path = os.path.join(cfg.DATASET_BASE, r'models', r'kmeans.m')
     clf = joblib.load(clf_model_path)
     return clf
 
@@ -67,9 +67,9 @@ def get_similarity(feature, feats, metric='cosine'):
 
 
 def get_deep_color_top_n(features, deep_feats, color_feats, labels, retrieval_top_n=5):
-    deep_scores = get_similarity(features[0], deep_feats, DISTANCE_METRIC[0])
-    color_scores = get_similarity(features[1], color_feats, DISTANCE_METRIC[1])
-    results = get_top_n(deep_scores + color_scores * COLOR_WEIGHT, labels, retrieval_top_n)
+    deep_scores = get_similarity(features[0], deep_feats, cfg.DISTANCE_METRIC[0])
+    color_scores = get_similarity(features[1], color_feats, cfg.DISTANCE_METRIC[1])
+    results = get_top_n(deep_scores + color_scores * cfg.COLOR_WEIGHT, labels, retrieval_top_n)
     return results
 
 
@@ -92,13 +92,13 @@ def kmeans_query(clf, features, deep_feats, color_feats, labels, retrieval_top_n
 
 @timer_with_task("Extracting image feature")
 def dump_single_feature(img_path, extractor):
-    paths = [img_path, os.path.join(DATASET_BASE, img_path), os.path.join(DATASET_BASE, 'in_shop', img_path)]
+    paths = [img_path, os.path.join(cfg.DATASET_BASE, img_path), os.path.join(cfg.DATASET_BASE, 'in_shop', img_path)]
     for i in paths:
         if not os.path.isfile(i):
             continue
         single_loader = torch.utils.data.DataLoader(
             Fashion_attr_prediction(type="single", img_path=i, transform=data_transform_test),
-            batch_size=1, num_workers=NUM_WORKERS, pin_memory=True
+            batch_size=1, num_workers=cfg.NUM_WORKERS, pin_memory=True
         )
         data = list(single_loader)[0]
         data = Variable(data).cuda(GPU_ID)
@@ -115,9 +115,9 @@ def visualize(original, result, cols=1):
     n_images = len(result) + 1
     titles = ["Original"] + ["Score: {:.4f}".format(v) for k, v in result]
     images = [original] + [k for k, v in result]
-    mod_full_path = lambda x: os.path.join(DATASET_BASE, x) \
-        if os.path.isfile(os.path.join(DATASET_BASE, x)) \
-        else os.path.join(DATASET_BASE, 'in_shop', x,)
+    mod_full_path = lambda x: os.path.join(cfg.DATASET_BASE, x) \
+        if os.path.isfile(os.path.join(cfg.DATASET_BASE, x)) \
+        else os.path.join(cfg.DATASET_BASE, 'in_shop', x,)
     images = list(map(mod_full_path, images))
     images = list(map(lambda x: cv2.cvtColor(cv2.imread(x), cv2.COLOR_BGR2RGB), images))
     fig = plt.figure()
