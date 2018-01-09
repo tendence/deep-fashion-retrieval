@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..myconfig import cfg
+from myconfig import cfg
 import os
 
 

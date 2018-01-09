@@ -6,6 +6,7 @@ from config import *
 import os
 from PIL import Image
 import random
+from myconfig import cfg
 
 
 class Fashion_attr_prediction(data.Dataset):
@@ -19,7 +20,7 @@ class Fashion_attr_prediction(data.Dataset):
             self.img_path = img_path
             return
         self.train_list = []
-        self.train_dict = {i: [] for i in range(CATEGORIES)}
+        self.train_dict = {i: [] for i in range(cfg.CATEGORIES)}
         self.test_list = []
         self.all_list = []
         self.bbox = dict()
@@ -38,13 +39,13 @@ class Fashion_attr_prediction(data.Dataset):
             return 1
 
     def read_partition_category(self):
-        list_eval_partition = os.path.join(DATASET_BASE, r'Eval', r'list_eval_partition.txt')
-        list_category_img = os.path.join(DATASET_BASE, r'Anno', r'list_category_img.txt')
+        list_eval_partition = os.path.join(cfg.DATASET_BASE, r'Eval', r'list_eval_partition.txt')
+        list_category_img = os.path.join(cfg.DATASET_BASE, r'Anno', r'list_category_img.txt')
         partition_pairs = self.read_lines(list_eval_partition)
         category_img_pairs = self.read_lines(list_category_img)
         for k, v in category_img_pairs:
             v = int(v)
-            if v <= 20:
+            if v <= cfg.CATEGORIES:
                 self.anno[k] = v - 1
         for k, v in partition_pairs:
             if k in self.anno:
@@ -60,7 +61,7 @@ class Fashion_attr_prediction(data.Dataset):
         random.shuffle(self.all_list)
 
     def read_bbox(self):
-        list_bbox = os.path.join(DATASET_BASE, r'Anno', r'list_bbox.txt')
+        list_bbox = os.path.join(cfg.DATASET_BASE, r'Anno', r'list_bbox.txt')
         pairs = self.read_lines(list_bbox)
         for k, x1, y1, x2, y2 in pairs:
             self.bbox[k] = [x1, y1, x2, y2]
@@ -73,7 +74,7 @@ class Fashion_attr_prediction(data.Dataset):
         return pairs
 
     def read_crop(self, img_path):
-        img_full_path = os.path.join(DATASET_BASE, img_path)
+        img_full_path = os.path.join(cfg.DATASET_BASE, img_path)
         with open(img_full_path, 'rb') as f:
             with Image.open(f) as img:
                 img = img.convert('RGB')
@@ -88,7 +89,7 @@ class Fashion_attr_prediction(data.Dataset):
             img_path = self.train_list[index]
             target = self.anno[img_path]
             img_p = random.choice(self.train_dict[target])
-            img_n = random.choice(self.train_dict[random.choice(list(filter(lambda x: x != target, range(20))))])
+            img_n = random.choice(self.train_dict[random.choice(list(filter(lambda x: x != target, range(cfg.CATEGORIES))))])
             img = self.read_crop(img_path)
             img_p = self.read_crop(img_p)
             img_n = self.read_crop(img_n)
@@ -142,13 +143,13 @@ class Fashion_inshop(data.Dataset):
         return pairs
 
     def readcloth(self):
-        lines = self.read_lines(os.path.join(DATASET_BASE, 'in_shop', 'list_bbox_inshop.txt'))
+        lines = self.read_lines(os.path.join(cfg.DATASET_BASE, 'in_shop', 'list_bbox_inshop.txt'))
         valid_lines = list(filter(lambda x: x[1] == '1', lines))
         names = set(list(map(lambda x: x[0], valid_lines)))
         return names
 
     def read_train_test(self):
-        lines = self.read_lines(os.path.join(DATASET_BASE, 'in_shop', 'list_eval_partition.txt'))
+        lines = self.read_lines(os.path.join(cfg.DATASET_BASE, 'in_shop', 'list_eval_partition.txt'))
         valid_lines = list(filter(lambda x: x[0] in self.cloth, lines))
         for line in valid_lines:
             s = self.train_dict if line[2] == 'train' else self.test_dict
@@ -175,7 +176,7 @@ class Fashion_inshop(data.Dataset):
         self.test_len = len(self.all_path) - self.train_len
 
     def process_img(self, img_path):
-        img_full_path = os.path.join(DATASET_BASE, 'in_shop', img_path)
+        img_full_path = os.path.join(cfg.DATASET_BASE, 'in_shop', img_path)
         with open(img_full_path, 'rb') as f:
             with Image.open(f) as img:
                 img = img.convert('RGB')

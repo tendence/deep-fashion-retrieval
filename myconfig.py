@@ -45,5 +45,6 @@ _C.ENABLE_TRIPLET_WITH_COSINE = False  # Buggy when backward...
 _C.COLOR_WEIGHT = 0.1
 _C.DISTANCE_METRIC = ('euclidean', 'euclidean')
 #_C.DISTANCE_METRIC = ('cosine', 'cosine')
+_C.MODELS_FLODER= "models_all_cate"
 _C.FREEZE_PARAM = True
 

@@ -22,7 +22,7 @@ def dump_model(model, epoch, batch_idx="final"):
 def load_model(path=None):
     if not path:
         return None
-    full = os.path.join(cfg.DATASET_BASE, 'models', path)
+    full = os.path.join(cfg.DATASET_BASE, cfg.MODELS_FLODER, path)
     for i in [path, full]:
         if os.path.isfile(i):
             return torch.load(i)
